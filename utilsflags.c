@@ -6,7 +6,7 @@
 /*   By: lmasetti <lmasetti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/22 15:27:05 by pcocci            #+#    #+#             */
-/*   Updated: 2023/06/22 13:22:26 by lmasetti         ###   ########.fr       */
+/*   Updated: 2023/06/30 10:58:19 by lmasetti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@ void	flag_init(t_cmd *cmd)
 	cmd->syntax_err = 0;
 	cmd->hd_j = 0;
 	cmd->hd_i = 0;
+	cmd->custom = 0;
 }
 
 void	free_box(t_cmd *cmd)
@@ -34,32 +35,22 @@ void	free_box(t_cmd *cmd)
 	i = 0;
 	j = 0;
 	while (cmd->box[i])
-	{	
+	{
 		j = 0;
+		while (cmd->box[i][j])
 		{
-			while (cmd->box[i][j])
-			{
-				{
-					free(cmd->box[i][j]);
-				}
-				j++;
-			}
+			free(cmd->box[i][j]);
+			j++;
 		}
-		i++;
-	}
-	i = 0;
-	while (cmd->box[i])
-	{	
 		free(cmd->box[i]);
 		i++;
 	}
-	free(cmd->box[i]);
 	free(cmd->box);
+	cmd->box = NULL;
 }
 
 void	free_altro(t_cmd *cmd)
 {
-	free(cmd->f);
 	free_box(cmd);
 }
 
@@ -73,11 +64,22 @@ void	free_dpointer(char **dpoint)
 	while (dpoint[i])
 	{
 		free(dpoint[i]);
-		dpoint[i] = NULL;
 		i++;
 	}
 	free(dpoint[i]);
-	dpoint[i] = NULL;
 	free(dpoint);
-	dpoint = NULL;
+}
+
+void	free_envp(t_cmd *cmd)
+{
+	int	i;
+
+	i = 0;
+	while (cmd->cpy_env[i])
+	{
+		free(cmd->cpy_env[i]);
+		i++;
+	}
+	free(cmd->cpy_env);
+	cmd->cpy_env = NULL;
 }

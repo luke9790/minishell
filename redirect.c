@@ -6,7 +6,7 @@
 /*   By: lmasetti <lmasetti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 11:23:42 by lmasetti          #+#    #+#             */
-/*   Updated: 2023/06/07 10:58:39 by lmasetti         ###   ########.fr       */
+/*   Updated: 2023/06/26 17:07:59 by lmasetti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ void	handle_input_heredoc(char	*delimiter)
 	read = getline(&line, &len, stdin);
 	while (read != -1)
 	{
-		if (strcmp(line, delimiter) == 0)
+		if (ft_strcmp(line, delimiter) == 0)
 			break ;
 	}
 	free(line);

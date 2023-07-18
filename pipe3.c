@@ -3,19 +3,19 @@
 /*                                                        :::      ::::::::   */
 /*   pipe3.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pcocci <pcocci@student.42firenze.it>       +#+  +:+       +#+        */
+/*   By: lmasetti <lmasetti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 14:48:05 by lmasetti          #+#    #+#             */
-/*   Updated: 2023/06/09 14:54:52 by pcocci           ###   ########.fr       */
+/*   Updated: 2023/07/03 15:48:46 by lmasetti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "./includes/minishell.h"
 
-void	ft_error(void)
+void	ft_error(t_cmd *cmd)
 {
+	(void)cmd;
 	perror("open");
-	exit(EXIT_FAILURE);
 }
 
 void	redirect_input(t_cmd *cmd, t_exe *exe, int i, int pipe_fds[i][2])
@@ -25,13 +25,13 @@ void	redirect_input(t_cmd *cmd, t_exe *exe, int i, int pipe_fds[i][2])
 		exe->input_fd = open("heredoc_tmp.txt", O_RDONLY);
 		cmd->f->write_in = 1;
 		if (exe->input_fd == -1)
-			ft_error();
+			ft_error(cmd);
 	}
 	if (i == 0 && cmd->input != NULL)
 	{
 		exe->input_fd = open(cmd->input, O_RDWR, 0644);
 		if (exe->input_fd == -1)
-			ft_error();
+			ft_error(cmd);
 	}
 	else if (i > 0 && cmd->f->write_in == 0)
 	{
@@ -51,7 +51,7 @@ void	redirect_output(t_cmd *cmd, t_exe *exe, int i, int pipe_fds[i][2])
 		else
 			exe->output_fd = open(cmd->output, 01 | 0100 | 01000, 0644);
 		if (exe->output_fd == -1)
-		{	
+		{
 			perror("open");
 			exit(EXIT_FAILURE);
 		}
@@ -67,21 +67,21 @@ void	redirect_output(t_cmd *cmd, t_exe *exe, int i, int pipe_fds[i][2])
 	}
 }
 
-void	handle_here_doc_input(const char	*delimiter, t_cmd *cmd, int j, int i)
+void	handle_here_doc_input(const char *delimiter, t_cmd *cmd, int j, int i)
 {
 	int		input_fd;
 	char	*line;
 
 	input_fd = in_fd(cmd, j, i);
 	if (input_fd == -1)
-	{	
+	{
 		perror("open");
 		exit(EXIT_FAILURE);
 	}
 	line = readline("> ");
 	write_line(input_fd, line);
 	while (line != NULL)
-	{	
+	{
 		line = readline("> ");
 		if (ft_strcmp(line, delimiter) == 0)
 		{

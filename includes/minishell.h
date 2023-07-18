@@ -6,7 +6,7 @@
 /*   By: lmasetti <lmasetti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/13 11:41:17 by paolococci        #+#    #+#             */
-/*   Updated: 2023/06/22 12:24:36 by lmasetti         ###   ########.fr       */
+/*   Updated: 2023/07/04 11:28:55 by lmasetti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,8 +29,7 @@
 typedef struct s_var	t_var;
 typedef struct s_flags	t_flags;
 
-extern int				g_fine;
-extern char				**environ;
+extern int				g_exitstatus;
 
 typedef struct s_exe {
 	int		input_fd;
@@ -40,6 +39,24 @@ typedef struct s_exe {
 	int		last_command_index;
 	pid_t	pid;
 }	t_exe;
+
+typedef struct s_upt {
+	char	*name;
+	int		i;
+	int		env_size;
+	char	**env;
+	char	**new_env;
+	char	*new_variable;
+}	t_upt;
+
+typedef struct s_cpy {
+	int		i;
+	int		env_size;
+	int		new_env_index;
+	char	**env;
+	char	**new_env;
+	char	*var_copy;
+}	t_cpy;
 
 typedef struct s_index {
 	int	i_in;
@@ -54,6 +71,7 @@ typedef struct s_int {
 typedef struct s_cmd {
 	char	*cmd;
 	char	*shell_prompt;
+	char	**cpy_env;
 	int		fine;
 	int		count;
 	int		exitstatus;
@@ -73,11 +91,19 @@ typedef struct s_cmd {
 	int		hd_j;
 	int		tmp;
 	int		f_echo;
+	int		custom;
 	t_exe	exe;
-	t_index	*index;
+	t_index	index;
 	t_flags	*f;
 	t_int	*ints;
 }	t_cmd;
+
+typedef struct s_path {
+	char	*path_env;
+	char	*path;
+	char	*dir;
+	char	*full_path;
+}	t_path;
 
 typedef struct s_flags {
 	int	re_in;
@@ -92,8 +118,43 @@ typedef struct s_flags {
 }	t_flags;
 
 void	exe_basic_cmd(char **parsed, char *command, char **envp);
+char	*expand_echo(char **parsed, int n);
+int		syntax_err(t_cmd *cmd);
+void	ft_sticazzi(t_cmd *cmd, char **parsed, int n);
+void	ft_sticazzi2(t_cmd *cmd, char **parsed, int n);
+void	echo_dollar_plus(t_cmd *cmd, char **parsed, int n);
+void	ft_realloc(char **env);
+void	check_heredoc(t_cmd *cmd);
+void	free_fcp(char *path, char *path_env);
+void	set_tpath(t_path *path, t_cmd *cmd);
+void	free_heredoc(t_cmd *cmd, int i, int j);
+int		break_heredoc(t_cmd *cmd, int i, int j, int x);
+void	stampa(char *env);
+void	handle_squote(t_cmd *cmd);
+void	handle_dquote(t_cmd *cmd);
+int		handle_halper(t_cmd *cmd);
+char	*d_dollar(char *env, char **parsed, int n, t_cmd *cmd);
+int		check_pipes(t_cmd *cmd);
+char	*s_dollar(char *env, char **parsed, int n, t_cmd *cmd);
+void	putstr_h(char *env, int i);
+char	*expand_echo2(char **parsed, int n);
+void	handle_space_d(char **parsed, int n);
+void	handle_space_s(char **parsed, int n);
+int		exe_helper(t_cmd *cmd, int i);
+void	free_s(char **split_pipes);
+int		check_split(char **split_pipes, t_cmd *cmd);
+int		ft_checkatoi(char *s);
+int		ft_atoi(const char *nptr);
+void	set_cpy(t_cpy *cpy, t_cmd *cmd);
+void	up_extra(t_upt *upt);
+void	free_cpy(t_cpy *cpy);
+int		fail_ma_un(t_cpy *cpy);
+void	l_heredoc_help(t_cmd *cmd, int j, int x, int i);
+void	realloc_env(t_cmd *cmd, int i);
+void	copy_envp(t_cmd *cmd, char **envp);
+void	copy_envp2(t_cmd *cmd, char **envp, int j);
 int		check_var_loop(char **parsed);
-int		is_valid_command(const char	*string);
+int		is_valid_command(const char	*string, t_cmd *cmd);
 void	variables(t_cmd	*cmd, char	***box);
 int		is_there_more_commands(t_cmd *cmd, char **parsed);
 void	ft_strstr(t_cmd *cmd, int j, int i, char **parsed);
@@ -110,7 +171,7 @@ char	*new_txt(char *txt);
 char	*_strchr(char *s, int c);
 void	loop(t_cmd *cmd, char **envp);
 void	handler(int sig_num);
-void	custom_commands(t_cmd *cmd, char **parsed, char **envp);
+void	custom_commands(t_cmd *cmd, int i, char **envp);
 char	*remove_tilde(char *str);
 int		ft_strcmp(const char *s1, const char *s2);
 int		check_dir(char **parsed);
@@ -138,7 +199,7 @@ void	many_cmd(t_cmd *cmd, int i);
 // BUILTINS AND REDIRECTIONS
 
 void	ft_env(t_cmd *cmd, char **parsed, char **envp);
-void	ft_pwd(t_cmd *cmd);
+void	ft_pwd(void);
 void	ft_exit(t_cmd *cmd);
 int		check_cd(char **parsed);
 int		printDirectoryContents(char **parsed);
@@ -148,7 +209,7 @@ void	handle_input_redirection(char	*filename);
 void	handle_output_redirection(char	*filename);
 void	handle_input_heredoc(char	*delimiter);
 void	handle_output_append_redirection(char	*filename);
-void	ft_unset(char **parsed, char **envp);
+void	ft_unset(char **parsed, t_cmd *cmd);
 //EXE
 
 void	close_pipe_fds(int i, int num_pipes, int pipe_fds[][2]);
@@ -165,7 +226,9 @@ int		ft_putenv_ez(char *name, t_cmd *cmd);
 int		ft_putenv(char *name, char *value, t_cmd *cmd);
 void	look_var_envp(t_cmd *cmd, char **envp);
 void	up_environ(char *current);
-void	up_envp(char *current, char **envp);
+void	up_envp(char *current, char **envp, t_cmd *cmd);
+void	free_envp(t_cmd *cmd);
+void	unset_update(t_cmd *cmd, int i);
 
 // UTILS
 
@@ -174,6 +237,7 @@ size_t	ft_strlcpy(char *dst, const char *src, size_t size);
 size_t	ft_strlen(const char *str);
 char	**ft_split(char const *s, char c);
 int		ft_strncmp(const char *s1, const char *s2, size_t n);
+void	ft_strncpy(char *dest, const char *src, size_t n);
 int		ft_strcmp(const char *s1, const char *s2);
 char	*ft_strjoin(char const *s1, char const *s2);
 void	ft_putstr_fd(char *s, int fd);
@@ -191,7 +255,7 @@ char	*ft_strnstr(const char *big, const char *little, size_t len);
 void	parsing(t_cmd *cmd);
 char	*ft_strchr(const char *s, int c);
 char	*ft_strjoin(char const *s1, char const *s2);
-char	*ft_getenv(char *var, char **envp);
+char	*ft_getenv(char *var, t_cmd *cmd);
 
 // PIPE
 void	checking_redir(t_cmd *cmd, int i);
@@ -205,7 +269,7 @@ void	set_struct(t_exe *exe, int num_pipes);
 void	error_fork(pid_t pid);
 void	many_redir(t_cmd *cmd, int i);
 int		count_redir(t_cmd *cmd, int i);
-char	*find_command_path(const char *c, char *path, char *p_e, char *dir);
+char	*fcp(const char *c, char *path, char *p_e, t_cmd *cmd);
 
 // LISTE VARIABILI
 t_var	*ft_lstlast(t_var *lst);
@@ -236,9 +300,9 @@ void	search_here(t_cmd *cmd);
 void	alloc_out(t_cmd *cmd, int i, int j);
 
 // BUILTINS
-int		check_echo(char **parsed, int n, t_cmd *cmd);
-void	echo_no_dollar(char **parsed, int n, int flag);
-void	ft_putstr(char *parsed);
+int		check_echo(char **parsed, int n);
+void	echo_no_dollar(char **parsed, int n, int flag, t_cmd *cmd);
+void	ft_putstr(char *env, char **parsed, int n, t_cmd *cmd);
 void	echo_dollar(char **parsed, int n, t_cmd *cmd, int squote);
 char	*ft_putstr_quota(char *parsed);
 void	write_line(int input_fd, char *line);

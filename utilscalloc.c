@@ -6,7 +6,7 @@
 /*   By: lmasetti <lmasetti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/17 15:06:14 by lmasetti          #+#    #+#             */
-/*   Updated: 2023/06/22 13:24:15 by lmasetti         ###   ########.fr       */
+/*   Updated: 2023/06/30 18:20:16 by lmasetti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,8 +54,10 @@ char	*ft_strdup(const char *s)
 	char	*str;
 
 	i = 0;
+	if (!s)
+		return (NULL);
 	j = ft_strlen(s);
-	str = (char *)malloc(sizeof(char) * (j + 1));
+	str = (char *)malloc(sizeof(*str) * (j + 1));
 	while (i < j)
 	{
 		str[i] = s[i];
@@ -67,12 +69,7 @@ char	*ft_strdup(const char *s)
 
 void	free_in_out(t_cmd *cmd)
 {
-	if (cmd->input && (ft_strcmp(cmd->input, "heredoc_tmp.txt") != 0))
+	if (cmd->input && ft_strcmp(cmd->input, "heredoc_tmp.txt") != 0)
 		free(cmd->input);
-	else
-		cmd->input = NULL;
-	if (cmd->output)
-		free(cmd->output);
-	else
-		cmd->output = NULL;
+	free(cmd->output);
 }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parse_input.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pcocci <pcocci@student.42firenze.it>       +#+  +:+       +#+        */
+/*   By: lmasetti <lmasetti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/22 15:33:41 by pcocci            #+#    #+#             */
-/*   Updated: 2023/06/21 18:11:04 by pcocci           ###   ########.fr       */
+/*   Updated: 2023/07/04 12:42:16 by lmasetti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,12 @@ void	split_pipes(t_cmd *cmd)
 
 	i = 0;
 	split_pipes = ft_split(cmd->cmd, '|');
+	if (check_split(split_pipes, cmd) == 1)
+	{
+		free_s(split_pipes);
+		printf("Syntax Error\n");
+		return ;
+	}
 	cmd->box = malloc((sizeof(char **)) * (cmd->nbr_pipe + 2));
 	while (split_pipes[i])
 	{
@@ -41,13 +47,7 @@ void	split_pipes(t_cmd *cmd)
 	}
 	cmd->box[i] = NULL;
 	i = 0;
-	while (split_pipes[i])
-	{
-		free(split_pipes[i]);
-		i++;
-	}
-	free(split_pipes[i]);
-	free(split_pipes);
+	free_s(split_pipes);
 }
 
 void	add_spaces(t_cmd *cmd)
@@ -80,41 +80,50 @@ void	add_spaces(t_cmd *cmd)
 }
 
 void	ft_parse_input1(t_cmd *cmd, char **envp)
-{	
+{
 	cmd->count++;
 	convert(cmd);
+	flag_init(cmd);
 	count_pipes(cmd);
+	check_heredoc(cmd);
 	split_pipes(cmd);
-	if (cmd->box[0][0] == NULL)
+	if (cmd->syntax_err == 1)
+	{
+		g_exitstatus = 127;
 		return ;
+	}
 	cmd->output = NULL;
 	cmd->input = NULL;
 	add_spaces(cmd);
 	look_var(cmd, envp);
-	cmd->f = malloc(sizeof(t_flags));
-	flag_init(cmd);
 	look_here_doc(cmd, 0, 0);
 }
 
 void	parse_input(t_cmd *cmd, char **envp)
 {
 	ft_parse_input1(cmd, envp);
+	if (syntax_err(cmd) == 1)
+		return ;
 	if (cmd->box[0][0] == NULL)
 		return ;
 	if (ft_strcmp(cmd->box[0][0], "export") == 0)
 		look_var_envp(cmd, envp);
-	if (ft_strncmp(cmd->box[0][0], "unset", 5) == 0)
-		ft_unset(cmd->box[0], envp);
+	if (ft_strcmp(cmd->box[0][0], "unset") == 0)
+		ft_unset(cmd->box[0], cmd);
 	if (ft_strcmp(cmd->box[0][0], "cd") == 0)
 	{
 		ft_cd(cmd->box[0]);
 		if (cmd->box[1] != NULL)
 			cmd->box++;
 	}
-	if (ft_strncmp(cmd->box[0][0], "exit", 4) == 0)
+	if (ft_strcmp(cmd->box[0][0], "exit") == 0)
 		ft_exit(cmd);
-	execute_command(cmd, cmd->nbr_pipe, envp);
-	free_in_out(cmd);
-	unlink("heredoc_tmp.txt");
-	flag_init(cmd);
+	if (g_exitstatus != 666)
+	{
+		execute_command(cmd, cmd->nbr_pipe, envp);
+		free_in_out(cmd);
+		unlink("heredoc_tmp.txt");
+	}
+	if (g_exitstatus == 666)
+		g_exitstatus = 1;
 }

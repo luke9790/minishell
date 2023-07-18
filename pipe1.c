@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipe1.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pcocci <pcocci@student.42firenze.it>       +#+  +:+       +#+        */
+/*   By: lmasetti <lmasetti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 14:48:05 by lmasetti          #+#    #+#             */
-/*   Updated: 2023/06/20 14:17:06 by pcocci           ###   ########.fr       */
+/*   Updated: 2023/06/30 16:56:58 by lmasetti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ void	expand_var(t_cmd *cmd)
 		while (cmd->box[i][j])
 		{
 			if (cmd->box[i][j][0] == '$')
-				cmd->box[i][j] = getenv(cmd->box[i][j] + 1);
+				cmd->box[i][j] = ft_getenv(cmd->box[i][j] + 1, cmd);
 			j++;
 		}
 		i++;
@@ -59,15 +59,16 @@ int	check_malloc(char *full_path, char *path)
 	return (0);
 }
 
-char	*find_command_path(const char *c, char *path, char *path_env, char *dir)
+char	*fcp(const char *c, char *path, char *path_env, t_cmd *cmd)
 {
 	char	*full_path;
+	char	*dir;
 
-	path_env = getenv("PATH");
-	path = strdup(path_env);
+	path_env = ft_getenv("PATH", cmd);
+	path = ft_strdup(path_env);
+	dir = strtok(path, ":");
 	if (path_helper(path_env, path) == 1)
 		return (NULL);
-	dir = strtok(path, ":");
 	while (dir != NULL)
 	{
 		full_path = (char *)malloc (strlen(dir) + strlen(c) + 2);
@@ -82,7 +83,7 @@ char	*find_command_path(const char *c, char *path, char *path_env, char *dir)
 		free(full_path);
 		dir = strtok(NULL, ":");
 	}
-	free(path);
+	free_fcp(path, path_env);
 	return (NULL);
 }
 
@@ -93,8 +94,8 @@ int	count_redir(t_cmd *cmd, int i)
 
 	j = 0;
 	count = 0;
-	cmd->index->i_in = 0;
-	cmd->index->i_out = 0;
+	cmd->index.i_in = 0;
+	cmd->index.i_out = 0;
 	while (cmd->box[i][j])
 	{
 		if (ft_strcmp(cmd->box[i][j], "<") == 0
@@ -103,12 +104,14 @@ int	count_redir(t_cmd *cmd, int i)
 			|| ft_strcmp(cmd->box[i][j], ">") == 0)
 		{
 			if (count == 0)
-				cmd->index->i_in = j;
+				cmd->index.i_in = j;
 			else
-				cmd->index->i_out = j;
+				cmd->index.i_out = j;
 			count++;
 		}
 		j++;
 	}
+	if (count == 0)
+		flag_init(cmd);
 	return (count);
 }

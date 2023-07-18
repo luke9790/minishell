@@ -6,7 +6,7 @@
 /*   By: lmasetti <lmasetti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/11 15:34:16 by pcocci            #+#    #+#             */
-/*   Updated: 2023/06/07 10:58:11 by lmasetti         ###   ########.fr       */
+/*   Updated: 2023/07/04 12:44:42 by lmasetti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,19 +14,21 @@
 
 int	check_cmds(char **parsed, int j)
 {
-	if (ft_strncmp(parsed[j], "exit", 4) == 0)
+	if (!parsed[j])
+		return (1);
+	if (ft_strcmp(parsed[j], "exit") == 0)
 		return (0);
-	else if (ft_strncmp(parsed[j], "cd", 2) == 0)
+	else if (ft_strcmp(parsed[j], "cd") == 0)
 		return (0);
-	else if (ft_strncmp(parsed[j], "export", 6) == 0)
+	else if (ft_strcmp(parsed[j], "export") == 0)
 		return (0);
-	else if (ft_strncmp(parsed[j], "pwd", 3) == 0)
+	else if (ft_strcmp(parsed[j], "pwd") == 0)
 		return (0);
-	else if (ft_strncmp(parsed[j], "echo", 4) == 0)
+	else if (ft_strcmp(parsed[j], "echo") == 0)
 		return (0);
-	else if (ft_strncmp(parsed[j], "unset", 5) == 0)
+	else if (ft_strcmp(parsed[j], "unset") == 0)
 		return (0);
-	else if (ft_strncmp(parsed[j], "env", 3) == 0)
+	else if (ft_strcmp(parsed[j], "env") == 0)
 		return (0);
 	return (1);
 }

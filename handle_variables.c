@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   handle_variables.c                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pcocci <pcocci@student.42firenze.it>       +#+  +:+       +#+        */
+/*   By: lmasetti <lmasetti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/14 17:58:54 by paolococci        #+#    #+#             */
-/*   Updated: 2023/06/20 13:17:15 by pcocci           ###   ########.fr       */
+/*   Updated: 2023/06/30 18:30:22 by lmasetti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,9 +17,11 @@ int	check_var(char *parsed)
 	int	i;
 
 	i = 0;
-	while (parsed[i])
+	if (!parsed)
+		return (0);
+	while (parsed[i] && parsed[i + 1] != '\0')
 	{
-		if (parsed[i] == '=')
+		if (parsed[i + 1] == '=')
 			return (1);
 		i++;
 	}
@@ -94,4 +96,6 @@ void	print_envp2(char **envp)
 	{
 		printf("%s\n", envp[i++]);
 	}
+	if (envp[i] == NULL)
+		printf("%s\n", envp[i]);
 }

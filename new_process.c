@@ -6,7 +6,7 @@
 /*   By: lmasetti <lmasetti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 14:48:05 by lmasetti          #+#    #+#             */
-/*   Updated: 2023/06/22 13:03:25 by lmasetti         ###   ########.fr       */
+/*   Updated: 2023/06/26 17:06:03 by lmasetti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,16 +19,16 @@ int	is_there_more_commands(t_cmd *cmd, char **parsed)
 	i = 0;
 	while (parsed[i])
 	{
-		if (strcmp(parsed[i], "<") == 0)
+		if (ft_strcmp(parsed[i], "<") == 0)
 			cmd->f->re_in = 1;
-		if (strcmp(parsed[i], ">") == 0)
+		if (ft_strcmp(parsed[i], ">") == 0)
 			cmd->f->re_out = 1;
-		if (strcmp(parsed[i], "<<") == 0)
+		if (ft_strcmp(parsed[i], "<<") == 0)
 		{
 			cmd->f->re_in = 1;
 			return (0);
 		}
-		if (strcmp(parsed[i], ">>") == 0)
+		if (ft_strcmp(parsed[i], ">>") == 0)
 		{
 			cmd->f->re_out = 1;
 			cmd->f->append_out = 1;
@@ -79,12 +79,11 @@ void	ft_strstr(t_cmd *cmd, int j, int i, char **parsed)
 {
 	int	x;
 
-	cmd->input = NULL;
-	cmd->output = NULL;
 	x = 0;
 	while (x < j)
 	{
-		cmd->new_cmd[x] = ft_strdup(parsed[x]);
+		cmd->new_cmd[x] = malloc((sizeof(char *)) * (ft_strlen(parsed[x]) + 1));
+		ft_strcpy(cmd->new_cmd[x], parsed[x]);
 		x++;
 	}
 	if (cmd->f->re_out == 1)
@@ -98,7 +97,10 @@ void	ft_strstr(t_cmd *cmd, int j, int i, char **parsed)
 		}
 	}
 	else if (cmd->f->re_in == 1)
-		cmd->input = ft_strdup(parsed[i - 1]);
+	{
+		cmd->input = malloc((sizeof(char *)) * (ft_strlen(parsed[i -1]) + 1));
+		ft_strcpy(cmd->input, parsed[i -1]);
+	}
 	cmd->new_cmd[j] = NULL;
 }
 

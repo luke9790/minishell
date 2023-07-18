@@ -6,7 +6,7 @@
 /*   By: lmasetti <lmasetti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 14:48:05 by lmasetti          #+#    #+#             */
-/*   Updated: 2023/06/22 11:45:46 by lmasetti         ###   ########.fr       */
+/*   Updated: 2023/07/03 15:26:58 by lmasetti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,8 +17,7 @@ void	checking_redir(t_cmd *cmd, int i)
 	int	x;
 
 	if (cmd->hd_i != 1)
-	{	
-		//while (cmd->box[i])
+	{
 		{
 			if (count_redir(cmd, i) <= 1)
 			{
@@ -27,13 +26,14 @@ void	checking_redir(t_cmd *cmd, int i)
 				{
 					if (check_redirects_out(cmd, cmd->box[i], 0, 0) == 1)
 						new_cmd(cmd, i);
+					else
+						free_dpointer(cmd->new_cmd);
 				}
 			}
 			else
-			{	
+			{
 				many_redir(cmd, i);
 			}
-			//i++;
 		}
 	}
 }
@@ -61,28 +61,31 @@ void	close_pipes(int i, int pipe_fds[i][2])
 }
 
 void	inter_exe(t_cmd *cmd, char **envp, int i)
-{	
+{
 	char	*path;
 
-	path = find_command_path(cmd->box[i][0], 0, 0, 0);
+	path = NULL;
+	(void)envp;
+	if (check_cmds(cmd->box[i], 0) == 1)
+		path = fcp(cmd->box[i][0], 0, 0, cmd);
 	if (check_cmds(cmd->box[i], 0) == 1 && check_var_loop(cmd->box[i]) == 0
-		&& is_valid_command(cmd->box[i][0]) == 0)
+		&& is_valid_command(cmd->box[i][0], cmd) == 0)
 	{
 		expand_var(cmd);
 		if (ft_strchr(cmd->box[i][0], '/'))
-			execve((cmd->box[i][0]), cmd->box[i], environ);
+			execve((cmd->box[i][0]), cmd->box[i], cmd->cpy_env);
 		else
-			execve(path, cmd->box[i], environ);
+			execve(path, cmd->box[i], cmd->cpy_env);
 		perror("execve");
 		exit(EXIT_FAILURE);
 	}
 	else if (check_cmds(cmd->box[i], 0) == 0
 		|| check_var_loop(cmd->box[i]) == 1)
-		custom_commands(cmd, cmd->box[i], envp);
+		custom_commands(cmd, i, envp);
 	else
 	{
 		printf("%s: command not found\n", cmd->box[i][0]);
-		exit(0);
+		exit(g_exitstatus);
 	}
 }
 

@@ -27,3 +27,12 @@
    ...
    fun:main
 }
+
+{  
+   readline
+   Memcheck:Leak
+   ...
+   fun:readline
+   ...
+   fun:handle_here_doc_input
+}

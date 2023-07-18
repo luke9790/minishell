@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   builtins2.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pcocci <pcocci@student.42firenze.it>       +#+  +:+       +#+        */
+/*   By: lmasetti <lmasetti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/13 11:41:22 by paolococci        #+#    #+#             */
-/*   Updated: 2023/06/09 14:45:47 by pcocci           ###   ########.fr       */
+/*   Updated: 2023/06/30 11:00:36 by lmasetti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,14 +14,15 @@
 
 void	ft_env(t_cmd *cmd, char **parsed, char **envp)
 {
+	(void)envp;
 	if (ft_strcmp(parsed[0], "env") == 0 && (parsed[1] == NULL
 			|| cmd->f->re_out == 1))
 	{
-		print_envp2(envp);
-		cmd->exitstatus = 0;
+		print_envp2((char **)cmd->cpy_env);
+		g_exitstatus = 0;
 	}
 	else if (ft_strcmp(parsed[0], "env") == 0 && parsed[1] != NULL)
-		cmd->exitstatus = 130;
+		g_exitstatus = 130;
 }
 
 void	delete_content(char *str)
@@ -47,70 +48,62 @@ void	delete_content(char *str)
 void	unset_enviroment(char	*varname, char	**envp)
 {
 	int	index;
-	int	found;
 	int	i;
 
 	index = 0;
-	found = 0;
 	while (envp[index] != NULL)
 	{
-		if (strncmp(envp[index], varname, strlen(varname)) == 0
+		if (ft_strncmp(envp[index], varname, ft_strlen(varname)) == 0
 			&& envp[index][strlen(varname)] == '=')
-		{	
+		{
 			i = index;
-			while (envp[i] != NULL)
+			if (envp[i + 1] != NULL)
+				ft_strcpy(envp[i], envp[i + 1]);
+			else
 			{
-				envp[i] = envp[i + 1];
-				i++;
+				free(envp[i]);
+				envp[i] = NULL;
 			}
-			found = 1;
 			break ;
 		}
 		index++;
 	}
 }
 
-void	unset_environ(char **parsed, int i, int j)
-{	
-	char	*var;
+void	unset_variable(t_cmd *cmd, const char *variable)
+{
+	t_cpy	cpy;
 
-	while (parsed[j])
+	set_cpy(&cpy, cmd);
+	cpy.env = cmd->cpy_env;
+	if (cmd == NULL || cmd->cpy_env == NULL || variable == NULL)
+		return ;
+	cpy.new_env = (char **)malloc((cpy.env_size + 1) * sizeof(char *));
+	while (cpy.i < cpy.env_size)
 	{
-		i = 0;
-		while (environ[i])
-		{	
-			var = take_var(environ[i]);
-			if (ft_strcmp(parsed[j], var) == 0)
-				unset_enviroment(parsed[j], environ);
-			free(var);
-			i++;
+		if (ft_strncmp(cpy.env[cpy.i], variable, ft_strlen(variable)) != 0)
+		{
+			cpy.var_copy = ft_strdup(cpy.env[cpy.i]);
+			if (fail_ma_un(&cpy) == 1)
+				return ;
+			cpy.new_env[cpy.new_env_index] = cpy.var_copy;
+			cpy.new_env_index++;
 		}
-		j++;
+		cpy.i++;
 	}
+	cpy.new_env[cpy.new_env_index] = NULL;
+	free_cpy(&cpy);
+	cmd->cpy_env = cpy.new_env;
 }
 
-void	ft_unset(char **parsed, char **envp)
+void	ft_unset(char **parsed, t_cmd *cmd)
 {
-	int		i;
 	int		j;
-	char	*var;
 
-	i = 0;
 	j = 1;
 	while (parsed[j])
 	{
-		i = 0;
-		while (envp[i])
-		{	
-			var = take_var(envp[i]);
-			if (ft_strcmp(parsed[j], var) == 0)
-				unset_enviroment(parsed[j], envp);
-			free(var);
-			i++;
-		}
+		unset_variable(cmd, parsed[j]);
 		j++;
 	}
-	i = 0;
-	j = 1;
-	unset_environ(parsed, i, j);
 }

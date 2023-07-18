@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   builtins4.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pcocci <pcocci@student.42firenze.it>       +#+  +:+       +#+        */
+/*   By: lmasetti <lmasetti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/13 11:41:22 by paolococci        #+#    #+#             */
-/*   Updated: 2023/06/20 13:19:25 by pcocci           ###   ########.fr       */
+/*   Updated: 2023/06/30 16:46:44 by lmasetti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,65 +32,69 @@ char	*ft_putstr_quota(char *parsed)
 	return (parsed);
 }
 
-void	echo_dollar(char **envp, int n, t_cmd *cmd, int squote)
-{	
+void	echo_dollar(char **parsed, int n, t_cmd *cmd, int squote)
+{
 	char	*env;
+	char	*var;
 
-	env = ft_getenv(cmd->parsed[n], envp);
-	if (ft_strncmp(cmd->parsed[n], "-n", 2) != 0 || cmd->f_echo == 1)
+	env = NULL;
+	var = NULL;
+	if (cmd->cpy_env)
+		env = ft_getenv(parsed[n], cmd);
+	if (ft_strncmp(parsed[n], "-n", 2) != 0 || cmd->f_echo == 1)
 	{
 		if (squote == 0)
 		{
 			if (env != NULL)
-				ft_putstr(env);
+				ft_putstr(env, parsed, n, cmd);
 		}
 		else
 		{
-			cmd->parsed[n] = ft_putstr_quota(cmd->parsed[n]);
-			cmd->parsed[n]++;
-			printf("\'%s\'", ft_getenv(cmd->parsed[n], envp));
-	 
+			parsed[n] = expand_echo2(parsed, n);
+			var = ft_getenv(parsed[n], cmd);
+			printf("\'%s\'", var);
+			free(var);
 		}
 		cmd->f_echo = 1;
-		if (cmd->parsed[n + 1] != 0)
-			printf(" ");
 	}
 	free(env);
 }
 
-void	ft_putstr(char *parsed)
+void	ft_putstr(char *env, char **parsed, int n, t_cmd *cmd)
 {
 	int	i;
 
+	(void)cmd;
 	i = 0;
-	while (parsed[i])
+	if (env[0] == '\'' && ft_strchr(env, '$'))
 	{
-		if (parsed[i] == 20)
-			parsed[i] = '$';
-		if (parsed[i] == 18)
-			parsed[i] = '|';
-		write(1, &parsed[i], 1);
-		i++;
+		printf("open quote");
+		return ;
 	}
-	write(1, " ", 1);
+	stampa(env);
+	if (parsed[n + 1])
+	{
+		handle_space_s(parsed, n);
+		handle_space_d(parsed, n);
+	}
 }
 
-void	echo_no_dollar(char **parsed, int n, int flag)
+void	echo_no_dollar(char **parsed, int n, int flag, t_cmd *cmd)
 {
 	if (ft_strncmp(parsed[n], "-n", 2) != 0 || flag == 1)
 	{
-		ft_putstr(parsed[n]);
+		ft_putstr(parsed[n], parsed, n, cmd);
 		flag = 1;
 		if (parsed[n + 1] != 0)
 			printf(" ");
 	}
 }
 
-int	check_echo(char **parsed, int n, t_cmd *cmd)
+int	check_echo(char **parsed, int n)
 {
 	if (!parsed && n == 1)
-	{	
-		cmd->exitstatus = 1;
+	{
+		g_exitstatus = 1;
 		return (1);
 	}
 	return (0);

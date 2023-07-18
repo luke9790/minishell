@@ -6,7 +6,7 @@
 /*   By: lmasetti <lmasetti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 14:48:05 by lmasetti          #+#    #+#             */
-/*   Updated: 2023/06/22 11:43:05 by lmasetti         ###   ########.fr       */
+/*   Updated: 2023/07/03 16:19:31 by lmasetti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 void	child_process(t_cmd *cmd, int i, int pipe_fds[i][2], char **envp)
 {
+	(void)envp;
 	redirect_input(cmd, &cmd->exe, i, pipe_fds);
 	redirect_output(cmd, &cmd->exe, i, pipe_fds);
 	inter_exe(cmd, envp, i);
@@ -23,14 +24,14 @@ void	child_process(t_cmd *cmd, int i, int pipe_fds[i][2], char **envp)
 		close(pipe_fds[i][1]);
 }
 
-void	parent_wait(int num_pipes, t_exe *exe, t_cmd *cmd)
+void	parent_wait(int num_pipes, t_exe *exe)
 {
 	int	i;
 
 	i = 0;
 	while (i <= num_pipes)
 	{
-		waitpid(exe->pid, &cmd->exitstatus, 0);
+		waitpid(exe->pid, &g_exitstatus, 0);
 		i++;
 	}
 }
@@ -51,9 +52,9 @@ void	set_in_out(int i, int pipe_fds[i][2], t_exe *exe)
 	}
 }
 
-void	exefine(int num_pipes, t_exe *exe, t_cmd *cmd)
+void	exefine(int num_pipes, t_exe *exe)
 {
-	parent_wait(num_pipes, exe, cmd);
+	parent_wait(num_pipes, exe);
 	dup2(exe->original_stdout, STDOUT_FILENO);
 	close(exe->original_stdout);
 }
@@ -69,7 +70,9 @@ void	execute_command(t_cmd *cmd, int num_pipes, char **envp)
 	while (i <= num_pipes)
 	{
 		checking_redir(cmd, i);
-		if (cmd->syntax_err == 1)
+		if (syntax_err(cmd) == 1)
+			return ;
+		if (exe_helper(cmd, i) == 1)
 			return ;
 		cmd->exe.pid = fork();
 		error_fork(cmd->exe.pid);
@@ -82,5 +85,5 @@ void	execute_command(t_cmd *cmd, int num_pipes, char **envp)
 			close_pipes(i, pipe_fds);
 		i++;
 	}
-	exefine(num_pipes, &cmd->exe, cmd);
+	exefine(num_pipes, &cmd->exe);
 }
